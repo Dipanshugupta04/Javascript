@@ -1,0 +1,43 @@
+<img id="crimeImage" alt="Crime Image" width="300">
+<p id ="crimedata" witdth="500"></p>
+<button onclick="fetchCrime()">Fetch Crime</button>
+
+<script>
+async function fetchCrime() {
+    try {
+        let response = await fetch("https://imreporter-api-production.up.railway.app/api/crimes/state/up");
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        let data = await response.json();
+        console.log("Full API Response:", data); // Log full response
+
+        if (Array.isArray(data) && data.length > 0) {
+            console.log("Crime Entry:", data[0]); // Log first crime entry
+
+            if (data[0].crimepic) {
+                console.log("Base64 Image String:", data[0].crimepic);
+
+                // Set image source
+                document.getElementById("crimeImage").src = data[0].crimepic;
+                document.getElementById("crimedata").innerText = `
+                Crime Type: ${data[0].crimeType}
+                Category: ${data[0].category}
+                Date: ${data[0].date}
+                Description: ${data[0].description}
+                District: ${data[0].district}
+                State: ${data[0].state}
+            `;
+            } else {
+                console.error("No image found in API response.");
+            }
+        } else {
+            console.error("Invalid or empty data array.");
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+}
+</script>
