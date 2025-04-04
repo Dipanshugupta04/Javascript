@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth2 Login</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <h2>Google Login</h2>
+    <div id="g_id_onload"
+        data-client_id="257990209688-15ctlug3pparp7busdtg1i63hiemmgvn.apps.googleusercontent.com"
+        data-callback="handleCredentialResponse"
+        data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
+
+    <script>
+        function handleCredentialResponse(response) {
+            const idToken = response.credential;
+            console.log(idToken);
+            
+            fetch("http://localhost:8081/auth/google", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ idToken })
+            })
+            .then(response => response.json())
+            .then(data => {
+                localStorage.setItem("jwt", data.jwt);
+                console.log("Login successful, JWT saved!");
+            })
+            .catch(error => console.error("Error logging in:", error));
+        }
+    </script>
+</body>
+</html>

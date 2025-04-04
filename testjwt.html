@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth2 Login</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <h2>Google Login</h2>
+
+    <!-- Google Sign-In Button -->
+    <div id="g_id_onload"
+        data-client_id="693476049740-se2qqteroh0pk7etb58q18s467uggj1k.apps.googleusercontent.com"
+        data-callback="handleCredentialResponse"
+        data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
+
+    <!-- Action Buttons -->
+    <button id="fetchBtn" onclick="fetchProtectedData()">Get Protected Data</button>
+    <button onclick="logout()">Logout</button>
+
+    <script>
+        // Handle response from Google Sign-In
+        function handleCredentialResponse(response) {
+            const idToken = response.credential;
+            console.log("Google ID Token:", idToken);
+
+            fetch("http://localhost:8081/auth/google", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                mode: "cors",
+                body: JSON.stringify({ idToken })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.jwt) {
+                    localStorage.setItem("jwt", data.jwt);
+                    console.log("JWT saved to localStorage:", data.jwt);
+                    alert("Login successful!");
+                    document.getElementById("fetchBtn").disabled = false;
+                } else {
+                    console.error("JWT not found in response");
+                }
+            })
+            .catch(error => console.error("Error logging in:", error));
+        }
+
+        // Fetch protected data with JWT
+        function fetchProtectedData() {
+            const token = localStorage.getItem("jwt");
+            if (!token) {
+                alert("User is not logged in.");
+                return;
+            }
+
+            fetch("http://localhost:8081/api/user", {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+        })
+            .then(response => {
+                if (!response.ok) throw new Error("Unauthorized or Error: " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log("Protected Data:", data);
+                alert("Data fetched! Check console.");
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Failed to fetch protected data.");
+            });
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem("jwt");
+            console.log("User logged out.");
+            alert("You have been logged out.");
+            location.reload();
+        }
+
+        // Disable button if not logged in
+        window.onload = function () {
+            const jwt = localStorage.getItem("jwt");
+            if (!jwt) {
+                document.getElementById("fetchBtn").disabled = true;
+            }
+        }
+    </script>
+</body>
+</html>
