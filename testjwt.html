@@ -37,9 +37,11 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.jwt) {
-                    localStorage.setItem("jwt", data.jwt);
-                    console.log("JWT saved to localStorage:", data.jwt);
+                if (Array.isArray(data)&& data.length>0) {
+                    const jwtToken=data[0];
+                    const unique_id=data[1];
+                    localStorage.setItem("jwt", jwtToken);
+                    console.log("JWT saved to localStorage:", jwtToken);
                     alert("Login successful!");
                     document.getElementById("fetchBtn").disabled = false;
                 } else {
